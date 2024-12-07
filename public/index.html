@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rechnungen Erstellen</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    /* Dunkles Design */
+    body {
+      background-color: #121212;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #1e1e1e;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Lila Button */
+    .btn-custom {
+      background-color: #9b4dca;
+      color: white;
+      font-size: 1.1rem;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-custom:hover {
+      background-color: #7a33a1;
+    }
+
+    /* Links Styling */
+    #downloadLinks a {
+      color: #9b4dca;
+      text-decoration: none;
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 10px;
+      transition: color 0.3s;
+    }
+
+    #downloadLinks a:hover {
+      color: #7a33a1;
+    }
+
+    /* Ladeanzeige */
+    .loading-message {
+      color: #bbb;
+      font-style: italic;
+    }
+
+    /* Fehlermeldung */
+    .error-message {
+      color: red;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Rechnungen Erstellen</h1>
+    <button id="generateRechnungen" class="btn-custom">Rechnungen erstellen</button>
+
+    <!-- Anzeige für Links -->
+    <div id="downloadLinks" class="mt-4"></div>
+
+    <!-- Anzeige für Fehler oder Ladezustand -->
+    <div id="loading" class="loading-message" style="display:none;">Rechnungen werden erstellt...</div>
+    <div id="errorMessage" class="error-message" style="display:none;"></div>
+  </div>
+
+  <script>
+    document.getElementById('generateRechnungen').addEventListener('click', async () => {
+      // Zeige Ladeanzeige
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('downloadLinks').innerHTML = ''; // Clear previous links
+      document.getElementById('errorMessage').style.display = 'none'; // Clear previous errors
+
+      try {
+        // Anfrage zum Erstellen der Rechnungen
+        const response = await fetch('/generate-all-rechnungen', {
+          method: 'POST',
+        });
+
+        const data = await response.json();
+        document.getElementById('loading').style.display = 'none'; // Verstecke Ladeanzeige
+
+        if (data.downloadLinks && data.downloadLinks.length > 0) {
+          const downloadLinksDiv = document.getElementById('downloadLinks');
+
+          // Durchlaufe die generierten Links und zeige sie an
+          data.downloadLinks.forEach(linkData => {
+            const link = document.createElement('a');
+            link.href = linkData.link;
+            link.textContent = `Rechnung ${linkData.rechnungsnummer} herunterladen`;
+            link.target = '_blank';
+            downloadLinksDiv.appendChild(link);
+          });
+        } else {
+          // Keine Rechnungen generiert
+          document.getElementById('errorMessage').textContent = 'Es wurden keine Rechnungen generiert.';
+          document.getElementById('errorMessage').style.display = 'block';
+        }
+      } catch (error) {
+        // Fehleranzeige
+        console.error('Fehler:', error);
+        document.getElementById('loading').style.display = 'none'; // Verstecke Ladeanzeige
+        document.getElementById('errorMessage').textContent = 'Es gab ein Problem beim Erstellen der Rechnungen. Bitte versuchen Sie es später erneut.';
+        document.getElementById('errorMessage').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+
+</html>
